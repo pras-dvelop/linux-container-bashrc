@@ -161,8 +161,7 @@ fi
 
 # Set zsh as default shell if not already
 if command -v zsh >/dev/null 2>&1 && [ "$SHELL" != "$(command -v zsh)" ]; then
-  echo "[.bashrc] Setting zsh as default shell..."
-  chsh -s "$(command -v zsh)" "$USER" || true
+  chsh -s "$(command -v zsh)" root || true
   # If running interactively and not already in zsh, exec zsh
   if [[ $- == *i* ]] && [ -z "$ZSH_VERSION" ]; then
     exec zsh
