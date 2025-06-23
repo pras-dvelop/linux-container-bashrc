@@ -87,69 +87,19 @@ elif command -v bat >/dev/null 2>&1; then
   alias cat='bat --paging=never --style=plain'
 fi
 
-# Install cargo if not already installed
-if ! command -v cargo >/dev/null 2>&1; then
-  echo "[.bashrc] Installing cargo..."
-  if command -v apt-get >/dev/null 2>&1; then
-    apt-get update && apt-get install -y cargo
-  else
-    echo "[.bashrc] Could not find a supported package manager to install cargo. Please install it manually."
-  fi
-fi
-
-# Ensure Rust (rustc >=1.87.0) is installed for eza
-min_rust_version=1.87.0
-rustc_version="$(command -v rustc >/dev/null 2>&1 && rustc --version 2>/dev/null | awk '{print $2}')"
-version_ge() {
-  # returns 0 if $1 >= $2
-  [ "$1" = "$2" ] && return 0
-  local IFS=.
-  local i ver1=($1) ver2=($2)
-  # fill empty fields in ver1 with zeros
-  for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do
-    ver1[i]=0
-  done
-  for ((i=0; i<${#ver1[@]}; i++)); do
-    if [[ -z ${ver2[i]} ]]; then
-      # fill empty fields in ver2 with zeros
-      ver2[i]=0
-    fi
-    if ((10#${ver1[i]} > 10#${ver2[i]})); then
-      return 0
-    fi
-    if ((10#${ver1[i]} < 10#${ver2[i]})); then
-      return 1
-    fi
-  done
-  return 0
-}
-if ! command -v rustc >/dev/null 2>&1 || ! version_ge "$rustc_version" "$min_rust_version"; then
-  echo "[.bashrc] Installing or updating Rust to >= $min_rust_version via rustup..."
-  if command -v curl >/dev/null 2>&1; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    . "$HOME/.cargo/env"
-    rustup update stable
-    rustup default stable
-    . "$HOME/.cargo/env"
-  else
-    echo "[.bashrc] curl is required to install Rust. Please install curl manually."
-  fi
-fi
-
-# Install eza if not already installed
+# Install eza (a modern replacement for ls) if not already installed
 if ! command -v eza >/dev/null 2>&1; then
-  echo "[.bashrc] Installing eza from source..."
-  if command -v git >/dev/null 2>&1 && command -v cargo >/dev/null 2>&1; then
-    tmp_eza_dir="$(mktemp -d)"
-    git clone https://github.com/eza-community/eza.git "$tmp_eza_dir/eza" && \
-    cd "$tmp_eza_dir/eza" && \
-    sed -i 's/^channel = .*/channel = "stable"/' rust-toolchain.toml && \
-    . "$HOME/.cargo/env" && \
-    cargo install --path .
-    cd ~
-    rm -rf "$tmp_eza_dir"
+  echo "[.bashrc] Installing eza..."
+  if command -v apt-get >/dev/null 2>&1; then
+    # eza requires gpg and wget to add its repository
+    apt-get update && apt-get install -y gpg wget
+    mkdir -p /etc/apt/keyrings
+    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
+    chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+    apt-get update && apt-get install -y eza
   else
-    echo "[.bashrc] git and cargo are required to build eza from source. Please install them manually."
+    echo "[.bashrc] Could not find a supported package manager to install eza. Please install it manually."
   fi
 fi
 
@@ -157,7 +107,6 @@ fi
 if command -v eza >/dev/null 2>&1; then
   alias ls='eza --color=auto --icons'
 fi
-. "$HOME/.cargo/env"
 
 # Set zsh as default shell if not already
 if command -v zsh >/dev/null 2>&1 && [ "$SHELL" != "$(command -v zsh)" ]; then
