@@ -198,6 +198,11 @@ export FZF_DEFAULT_OPTS=" \
 # Enable colors for less
 export LESS='-R'
 
+# if grc is not installed install init
+if ! command -v grc >/dev/null 2>&1; then
+    apt install grc
+fi
+
 if command -v grc >/dev/null 2>&1; then
         alias natstat="grc natstat"
         alias ss="grc ss"
