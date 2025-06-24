@@ -3,14 +3,50 @@
 export EDITOR='nvim'
 export GIT_EDITOR='nvim'
 
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="/usr/local/go/bin:/usr/local/venv/bin:$PATH"
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_CTYPE=UTF-8
+
+eval "$(dircolors -b)"
+export LS_OPTIONS='--color=auto'
+alias ls='ls $LS_OPTIONS'
+alias ll='ls $LS_OPTIONS -l'
+alias grep='grep --color=always --line-buffered'
+alias fgrep='fgrep --color=always --line-buffered'
+
+export CMAKE_GENERATOR=Ninja
+export CMAKE_BUILD_TYPE=Debug
+export CMAKE_COLOR_DIAGNOSTICS=ON
+export CLICOLOR_FORCE=1
+export LDFLAGS='-Wl,--color-diagnostics'
+
+alias d3-cmake-debug='mkdir -p ~/d3-server/build_debug && cd ~/d3-server/build_debug && cmake -DCMAKE_BUILD_TYPE=Debug ..'
+alias d3-cmake-release='mkdir -p ~/d3-server/build_release && cd ~/d3-server/build_release && cmake -DCMAKE_BUILD_TYPE=Release ..'
+alias d3-build='ninja'
+alias d3-build-regardless-of-errors='ninja -k 99999'
+alias d3-build-non-parallel='ninja -j 1'
+alias d3_isql='isql -v -k "DRIVER={MariaDB Unicode};SERVER=mysql;UID=root;PWD=Dvelop1!"'
+alias d3_mysql='mysql -hmysql -uroot -pDvelop1!'
+alias d3_jq='jq -r '"'"'. | "\(.time) \(.sev) \(.res.svc.name) \(.body)"'"'"
+alias d3_log='tail -f /tmp/dlogserver.log | eval "${BASH_ALIASES[d3_jq]}"'
+
+function d3-reset-conan
+{
+  rm -rf ~/.conan/
+  rm -rf ~/.conan2/
+  docker-entrypoint.sh
+  echo "Conan reset done."
+  echo "You will need your jFrog credentials to download the dependencies the next time you call d3-build-debug / d3-build-release"
+  echo "Visit https://repo.d-velop.de/ui/user_profile to get them."
+}
 
 # --- Zinit Setup and Plugin Management ---
 
 # Enable Powerlevel10k instant prompt. Must be sourced close to the top.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+#if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+#fi
 
 # --- Completions (must be before plugins and themes) ---
 autoload -Uz compinit
@@ -31,7 +67,7 @@ fi
 source "${ZINIT_HOME}/zinit.zsh"
 
 # Load Zinit Plugins
-zinit ice depth=1; zinit light romkatv/powerlevel10k # Powerlevel10k theme
+#zinit ice depth=1; zinit light romkatv/powerlevel10k # Powerlevel10k theme
 zinit light zsh-users/zsh-syntax-highlighting  # Syntax highlighting
 zinit light zsh-users/zsh-completions          # Enhanced completions
 zinit light zsh-users/zsh-autosuggestions      # Autosuggestions from history
@@ -41,7 +77,16 @@ zinit cdreplay -q # Replay Zinit commands
 # --- Prompt Configuration ---
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 # Must be sourced AFTER the powerlevel10k plugin is loaded.
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+#[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+
+# Check if starship is installed
+if ! command -v starship &> /dev/null; then
+  # Install starship
+  echo "Starship not found. Installing..."
+  curl -sS https://starship.rs/install.sh | sh
+  . ~/.zshrc
+  echo "Starship installation complete."
+fi
 
 # --- History Settings ---
 HISTSIZE=10000
@@ -94,12 +139,9 @@ alias gcl="git clone"
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#3b3b3b"
 
 
-# Use bat for cat if available
-if command -v batcat >/dev/null 2>&1; then
-  alias cat='batcat --paging=never'
-elif command -v bat >/dev/null 2>&1; then
-  alias cat='bat --paging=never'
-fi
+# Use bat for cat
+alias bat='batcat --paging=never'
+alias cat='bat --paging=never --color=always --plain'
 
 # --- Tool Specific Configurations ---
 # FNM
@@ -116,7 +158,7 @@ if command -v keychain >/dev/null 2>&1; then
 fi
 
 # Bun
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun" # Bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.Bun/_bun" # Bun completions
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
@@ -156,4 +198,6 @@ export FZF_DEFAULT_OPTS=" \
 # Enable colors for less
 export LESS='-R'
 
-# Custom user additions below
+fpath+=($HOME/.zsh/pure)
+
+eval "$(starship init zsh)"

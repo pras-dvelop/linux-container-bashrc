@@ -80,12 +80,9 @@ if ! command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1; then
   fi
 fi
 
-# Alias cat to bat (batcat on Debian/Ubuntu)
-if command -v batcat >/dev/null 2>&1; then
-  alias cat='batcat --paging=never'
-elif command -v bat >/dev/null 2>&1; then
-  alias cat='bat --paging=never --style=plain'
-fi
+# Alias cat to bat
+alias cat='batcat --paging=never'
+alias cat='bat --paging=never --style=plain'
 
 # Install eza (a modern replacement for ls) if not already installed
 if ! command -v eza >/dev/null 2>&1; then
