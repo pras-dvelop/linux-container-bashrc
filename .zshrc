@@ -198,6 +198,15 @@ export FZF_DEFAULT_OPTS=" \
 # Enable colors for less
 export LESS='-R'
 
-fpath+=($HOME/.zsh/pure)
+if command -v grc >/dev/null 2>&1; then
+        alias natstat="grc natstat"
+        alias ss="grc ss"
+        alias tail="grc tail"
+        
+        if command -v docker >/dev/null 2>&1; then
+                alias docker="grc docker"
+        fi
+        alias go="grc go"
+fi
 
 eval "$(starship init zsh)"
